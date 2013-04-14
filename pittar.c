@@ -18,43 +18,53 @@ Due April 20, 2013
 */
 
 int FIRST_LEVEL = 0;
+char CURR_DIR[ SMALL_BUFFER ];
+
 
 void print_hierarchy( char* dirname ) {
 
   println("");
-  println(" PRINT HIERARCHY: ");
+  println(" HIERARCHY FOR ARCHIVE FILE %s ", dirname );
   println("");
 
   list( dirname, FIRST_LEVEL );
 }
 
 
+void print_meta_data( char* dirname ) {
+
+  println("");
+  println(" META-DATA FOR ARCHIVE FILE %s ", dirname );
+  println("");
+
+  // list_meta_data( dirname, FIRST_LEVEL );
+}
+
+
 int main( int argc, char *argv[] ) {
   
+
   if ( argc == 1 ) {
-    // return 0;
-  } else if ( argc == 2 ) { // --defaults, -d, etc
-    println("Using defaults.");
-  } else if ( (argc-1) % 2 != 0 ) {
-    println("Malformed flags.");
-    return EXIT_FAILURE;
+    println( "No operation specified. Exiting." );
+    return 0;
   } else { // overwrite defaults
     
     int i;
-    char flag[ SMALL_BUFFER ];
+    // char flag[ SMALL_BUFFER ];
+    char flag;
+    strcpy( CURR_DIR, "." );
 
     for ( i = 1; i < argc; i++ ) {
-      strcpy( flag, argv[ i ] );
-      if ( strEqual(flag, "-k") )
-        println(" todo ");
+      
+      flag = argv[i][1];
         // num_cashiers = atoi( argv[ ++i ] );
+      if ( flag == 'p' )
+        print_hierarchy( CURR_DIR );
+      if ( flag == 'm' )
+        print_meta_data( CURR_DIR );
     }
   }
 
-
-  char container[ SMALL_BUFFER ];
-  strcpy( container, "." );
-  print_hierarchy( container );
   return 0;
  
 }
