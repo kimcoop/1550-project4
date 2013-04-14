@@ -32,13 +32,11 @@ void list_meta_data( char *name ) {
 
 
       if ( is_dir(&mybuf) ) {
-        // printf("%s/\n", dir->d_name );
         meta_data( newname );
         list_meta_data( newname );
       } else {
         meta_data( newname );
       }
-
 
       free( newname );
       newname = NULL;
@@ -49,6 +47,14 @@ void list_meta_data( char *name ) {
   closedir( dp );
 }
 
+int get_file_size( char *name ) {
+
+  struct stat mybuf;
+  p_stat( name, &mybuf );
+  println(" file size for file %s is %7d", name, (int)mybuf.st_size );
+
+  return (int) mybuf.st_size;
+}
 
 void meta_data( char *name ) {
 

@@ -29,6 +29,9 @@
 
 /* GLOBALS */
 
+// my_print
+int get_file_size( char *name );
+
 // utils.c
 int is_dir( struct stat* buf );
 void p_stat( char*, struct stat* );
@@ -36,3 +39,4 @@ DIR* p_opendir( char* name );
 
 #include "my_print.c"
 #include "utils.c"
+#include "dir.c"
