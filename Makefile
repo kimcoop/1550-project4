@@ -3,7 +3,7 @@ OBJS 	= pittar
 CC	= gcc
 OTHER_FLAGS = -o
 
-all: pittar
+all: clean pittar
 
 pittar: pittar.c
 	$(CC) pittar.c $(OTHER_FLAGS) pittar

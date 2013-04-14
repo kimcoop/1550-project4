@@ -17,15 +17,13 @@ Due April 20, 2013
 -j archive the files contained in <file/directory list> in compressed form while creating <archive-firle>
 */
 
-void printHeirarchy( char* container ) {
-  println(" printHeirarchy ");
-  print_hierarchy( container );
+void print_contents( char* container ) {
+  // println(" print_contents ");
+  read_dir( container );
 }
 
 
 int main( int argc, char *argv[] ) {
-
-  
   
   if ( argc == 1 ) {
     // return 0;
@@ -50,7 +48,7 @@ int main( int argc, char *argv[] ) {
 
   char container[ SMALL_BUFFER ];
   strcpy( container, "" );
-  printHeirarchy( container );
+  print_contents( container );
   return 0;
  
 }

@@ -29,4 +29,8 @@
 
 /* GLOBALS */
 
+// read_dir.c
+void p_stat( char*, struct stat* );
+
 #include "my_print.c"
+#include "read_dir.c"

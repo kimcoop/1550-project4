@@ -5,27 +5,23 @@ void print_hierarchy( char*);
 void list(char *);
 void printout(char *);
 
-// main(int argc, char *argv[]){
 void print_hierarchy( char *archive_file ) {
 
   struct stat mybuf;
-  int argc = 0; // TODO
-  char** argv = NULL;
 
-  if (argc<2) { 
+  if ( archive_file == NULL || strEqual(archive_file, "") ) { 
     list("."); 
     exit(0);
   }
 
-  while(--argc){
-    if (stat(*++argv, &mybuf) < 0) { 
-  	 perror(*argv); continue;
-  	}
+  while( archive_file != NULL ) {
+    p_stat( archive_file, &mybuf );
 
     if ((mybuf.st_mode & S_IFMT) == S_IFDIR )
-      list(*argv);      // directory encountered
+      list( archive_file );      // directory encountered
+      // print_hierarchy( archive_file );      // directory encountered
     else 	
-      printout(*argv);  // file encountered
+      printout( archive_file );  // file encountered
   } 
 
 } // main
@@ -36,22 +32,32 @@ void list(char *name){
   struct dirent *dir;
   char 	*newname;
   dp = opendir(name);
+
 	if ( dp== NULL ) {
 		perror("opendir"); 
     return;
 	}
+
 	while ((dir = readdir(dp)) != NULL ) {
-		if (dir->d_ino == 0 ) 
+		if (dir->d_ino == 0 ) {
       continue;
-		newname=(char *)malloc(strlen(name)+strlen(dir->d_name)+2);
-		strcpy(newname,name);
-		strcat(newname,"/");
-		strcat(newname,dir->d_name);
-		printout(newname);
-		free(newname); newname=NULL;
+      println("dir name: %s", dir->d_name );
+    }
+
+    if ( !strEqual(dir->d_name, ".") && !strEqual(dir->d_name, "..") ) {
+    
+  		newname=(char *)malloc( strlen(dir->d_name)+2 );
+  		strcpy(newname,"\t");
+  		strcat(newname, dir->d_name);
+      println( "%s", newname );
+  		free(newname);
+      newname=NULL;
+    }
 	}
-	close( dp);
+
+	closedir( dp);
 } // void list(char *name){
+
 
 void printout(char *name){
   struct stat 	mybuf;
@@ -60,9 +66,16 @@ void printout(char *name){
 
 	stat(name, &mybuf);
 	switch (mybuf.st_mode & S_IFMT){
-  	case S_IFREG: type = '-'; break;
-  	case S_IFDIR: type = 'd'; break;
-  	default:      type = '?'; break;
+  	case S_IFREG: 
+      type = '-'; 
+      break;
+  	case S_IFDIR: 
+      type = 'd'; 
+      // print_hierarchy( name );
+      break;
+  	default:      
+      type = '?'; 
+      break;
   }
 
 	*perms='\0';
@@ -75,7 +88,8 @@ void printout(char *name){
 	printf("%c%s%3d %5d/%-5d %7d %.12s %s \n",\
 		type, perms, mybuf.st_nlink, mybuf.st_uid, mybuf.st_gid, \
 		(int)mybuf.st_size, ctime(&mybuf.st_mtime)+4, name);
-} //void printout(char *name){
+
+}
 
 
 
