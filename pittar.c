@@ -14,15 +14,18 @@ Due April 20, 2013
 -x extract all files and catalogs from archived from <archive-file>
 -m print out meta-data (owner, group, rights) from <archive-file>
 -p display file hierarch(y/ies) readably (!) from files/directories stored in <archive-file>
--j archive the files contained in <file/directory list> in compressed form while creating <archive-firle>
+-j archive the files contained in <file/directory list> in compressed form while creating <archive-file>
 */
 
-void print_contents( char* dirname ) {
-  // println(" print_contents ");
-  DIR   *dir_ptr;
-  struct  dirent *direntp;
-  struct stat mybuf;
-  list( dirname, 0 );
+int FIRST_LEVEL = 0;
+
+void print_hierarchy( char* dirname ) {
+
+  println("");
+  println(" PRINT HIERARCHY: ");
+  println("");
+
+  list( dirname, FIRST_LEVEL );
 }
 
 
@@ -51,7 +54,7 @@ int main( int argc, char *argv[] ) {
 
   char container[ SMALL_BUFFER ];
   strcpy( container, "." );
-  print_contents( container );
+  print_hierarchy( container );
   return 0;
  
 }
