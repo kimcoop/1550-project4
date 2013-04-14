@@ -27,7 +27,7 @@ void print_hierarchy( char* dirname ) {
   println(" HIERARCHY FOR ARCHIVE FILE %s ", dirname );
   println("");
 
-  list( dirname, FIRST_LEVEL );
+  hierarchy( dirname, FIRST_LEVEL );
 }
 
 
@@ -37,7 +37,7 @@ void print_meta_data( char* dirname ) {
   println(" META-DATA FOR ARCHIVE FILE %s ", dirname );
   println("");
 
-  // list_meta_data( dirname, FIRST_LEVEL );
+  list_meta_data( dirname );
 }
 
 

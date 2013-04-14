@@ -18,7 +18,7 @@
 #define OUTPUT_FILE "output.txt"
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
-#define DEBUG 1
+#define DEBUG 0
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
 #define println(...) if ( DEBUG ) { printf("%d:\t", __LINE__); }  printf( __VA_ARGS__ ); printf("\n")
@@ -29,8 +29,10 @@
 
 /* GLOBALS */
 
-// read_dir.c
+// utils.c
+int is_dir( struct stat* buf );
 void p_stat( char*, struct stat* );
+DIR* p_opendir( char* name );
 
 #include "my_print.c"
-#include "read_dir.c"
+#include "utils.c"

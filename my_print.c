@@ -1,18 +1,62 @@
 
-void list(char *, int);
+void meta_data(char *);
+void hierarchy(char *, int);
 void tabify( int );
-void printout(char *);
 
 char *modes[]={"---","--x","-w-","-wx","r--","r-x","rw-","rwx"}; // eight distinct modes
 
 
-void printout(char *name) {
 
-  struct stat   mybuf;
+void list_meta_data( char *name ) {
+
+  struct dirent *dir;
+  char  *newname;
+  struct stat mybuf;
+  DIR *dp = p_opendir( name );
+
+  while ( (dir = readdir(dp)) != NULL ) {
+
+    if ( dir->d_ino == 0 )
+      continue;
+
+    if ( dir->d_name[0] != '.' ) {
+    
+      newname=(char *)malloc(strlen(name)+strlen(dir->d_name)+2);
+
+      strcpy(newname,name);
+      strcat(newname,"/");
+      strcat(newname, dir->d_name);
+
+
+      p_stat( newname, &mybuf );
+
+
+      if ( is_dir(&mybuf) ) {
+        // printf("%s/\n", dir->d_name );
+        meta_data( newname );
+        list_meta_data( newname );
+      } else {
+        meta_data( newname );
+      }
+
+
+      free( newname );
+      newname = NULL;
+
+    }
+  } // while
+
+  closedir( dp );
+}
+
+
+void meta_data( char *name ) {
+
+  struct stat mybuf;
   char    type, perms[10];
   int     i,j;
 
-  stat(name, &mybuf);
+  p_stat( name, &mybuf );
   switch (mybuf.st_mode & S_IFMT) {
     case S_IFREG: type = '-'; break;
     case S_IFDIR: type = 'd'; break;
@@ -41,26 +85,18 @@ void tabify( int n ) {
 }
 
 
-void list(char *name, int level ){
-  
-  DIR 	*dp;
+void hierarchy(char *name, int level ) {
+
   struct dirent *dir;
   char 	*newname;
   struct stat mybuf;
-  dp = opendir(name);
+  DIR *dp = p_opendir( name );
 
-	if ( dp== NULL ) {
-		perror("opendir"); 
-    return;
-	}
+	while ( (dir = readdir(dp)) != NULL ) {
 
-	while ((dir = readdir(dp)) != NULL ) {
-
-		if (dir->d_ino == 0 ) {
+		if ( dir->d_ino == 0 )
       continue;
-      println("dir name: %s", dir->d_name );
-    }
-    // if ( !strEqual(dir->d_name, ".") && !strEqual(dir->d_name, "..") && !strEqual(dir->d_name, ".git") ) {
+
     if ( dir->d_name[0] != '.' ) {
     
       newname=(char *)malloc(strlen(name)+strlen(dir->d_name)+2);
@@ -70,23 +106,21 @@ void list(char *name, int level ){
   		strcat(newname, dir->d_name);
       p_stat( newname, &mybuf );
 
-      if ( level ) {
-        tabify( level ); 
+      if ( level )
+        tabify( level );
+
+      if ( is_dir(&mybuf) ) {
+        printf("%s/\n", dir->d_name );
+        hierarchy( newname, level+1 );
+      } else {
+        printf("%s\n", dir->d_name );
       }
 
-      if ( is_dir(&mybuf) )
-        printf("%s/\n", dir->d_name );
-      else
-        printf("%s\n", dir->d_name );
-
-      if ( is_dir(&mybuf) )
-        list( newname, level+1 );
-
-  		free(newname);
-      newname=NULL;
+  		free( newname );
+      newname = NULL;
 
     }
-	}
+	} // while
 
 	closedir( dp );
 }
