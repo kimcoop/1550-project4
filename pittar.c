@@ -17,9 +17,12 @@ Due April 20, 2013
 -j archive the files contained in <file/directory list> in compressed form while creating <archive-firle>
 */
 
-void print_contents( char* container ) {
+void print_contents( char* dirname ) {
   // println(" print_contents ");
-  read_dir( container );
+  DIR   *dir_ptr;
+  struct  dirent *direntp;
+  struct stat mybuf;
+  list( dirname, 0 );
 }
 
 
@@ -47,7 +50,7 @@ int main( int argc, char *argv[] ) {
 
 
   char container[ SMALL_BUFFER ];
-  strcpy( container, "" );
+  strcpy( container, "." );
   print_contents( container );
   return 0;
  

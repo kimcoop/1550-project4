@@ -10,38 +10,40 @@ void p_stat( char* f, struct stat* buf ) {
   }
 }
 
-void do_ls( char dirname[] ){
-  DIR   *dir_ptr;
-  struct  dirent *direntp;
-  struct stat mybuf;
+// void do_ls( char dirname[] ){
+//   DIR   *dir_ptr;
+//   struct  dirent *direntp;
+//   struct stat mybuf;
+//   int level = 0;
+//   list( dirname, level  );
+//   // if ( ( dir_ptr = opendir( dirname ) ) == NULL ) {
+//   //   println( "cannot open %s \n",dirname);
+//   // } else {
 
-  if ( ( dir_ptr = opendir( dirname ) ) == NULL ) {
-    println( "cannot open %s \n",dirname);
-  } else {
-
-    while ( ( direntp=readdir(dir_ptr) ) != NULL ) {
-      p_stat( direntp->d_name, &mybuf );
-      if ( is_dir(&mybuf) ) {
-        println("%s/", direntp->d_name);
-        list( direntp->d_name );
-      }
+//   //   while ( ( direntp=readdir(dir_ptr) ) != NULL ) {
+//   //     p_stat( direntp->d_name, &mybuf );
+//   //     if ( is_dir(&mybuf) ) {
+//   //       println("%s/", direntp->d_name);
+//   //       println(" dir found");
+//   //       list( direntp->d_name );
+//   //     }
       
-    } // while
-    closedir(dir_ptr);
+//   //   } // while
+//   //   closedir(dir_ptr);
+//   //   println(" closedir" );
+//   // }
+// }
 
-  }
-}
-
-int read_dir( char* dir) {
-  println(" read_dir ");
-  int i = 0;
-  if ( !dir || strEqual( dir, "" )) 
-    do_ls(".");
-  else while ( dir && i < 10){
-      printf("%s: \n",dir ) ;
-      do_ls( dir );
-    }
-} 
+// int read_dir( char* dir) {
+//   println(" read_dir ");
+//   int i = 0;
+//   if ( !dir || strEqual( dir, "" )) 
+//     do_ls(".");
+//   else while ( dir && i < 10){
+//       printf("%s: \n",dir ) ;
+//       do_ls( dir );
+//     }
+// } 
 
 
 // int read_dir( int argc, char *argv[] ) {

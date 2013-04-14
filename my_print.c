@@ -2,7 +2,7 @@
 char *modes[]={"---","--x","-w-","-wx","r--","r-x","rw-","rwx"}; // eight distinct modes
 
 void print_hierarchy( char*);
-void list(char *);
+void list(char *, int);
 void printout(char *);
 
 void print_hierarchy( char *archive_file ) {
@@ -10,7 +10,7 @@ void print_hierarchy( char *archive_file ) {
   struct stat mybuf;
 
   if ( archive_file == NULL || strEqual(archive_file, "") ) { 
-    list("."); 
+    list(".", 0); 
     exit(0);
   }
 
@@ -18,7 +18,7 @@ void print_hierarchy( char *archive_file ) {
     p_stat( archive_file, &mybuf );
 
     if ((mybuf.st_mode & S_IFMT) == S_IFDIR )
-      list( archive_file );      // directory encountered
+      list( archive_file, 0 );      // directory encountered
       // print_hierarchy( archive_file );      // directory encountered
     else 	
       printout( archive_file );  // file encountered
@@ -26,11 +26,19 @@ void print_hierarchy( char *archive_file ) {
 
 } // main
 
+void tabify( int n ) {
+  int i;
+  for ( i = 0; i <= n; i++ ) {
+    printf("\t");
+  }
+}
 
-void list(char *name){
+
+void list(char *name, int level ){
   DIR 	*dp;
   struct dirent *dir;
   char 	*newname;
+  struct stat mybuf;
   dp = opendir(name);
 
 	if ( dp== NULL ) {
@@ -39,23 +47,40 @@ void list(char *name){
 	}
 
 	while ((dir = readdir(dp)) != NULL ) {
+
 		if (dir->d_ino == 0 ) {
       continue;
       println("dir name: %s", dir->d_name );
     }
-
     if ( !strEqual(dir->d_name, ".") && !strEqual(dir->d_name, "..") ) {
     
-  		newname=(char *)malloc( strlen(dir->d_name)+2 );
-  		strcpy(newname,"\t");
+      newname=(char *)malloc(strlen(name)+strlen(dir->d_name)+2);
+
+      strcpy(newname,name);
+      strcat(newname,"/");
   		strcat(newname, dir->d_name);
-      println( "%s", newname );
+      // println( "\t%s", name );
+      p_stat( newname, &mybuf );
+
+      if ( level ) {
+        tabify( level ); 
+      }
+      printf("%s\n", dir->d_name );
+
+      if ( is_dir(&mybuf) ) {
+
+        // printf("/");
+
+        list( newname, level+1 );
+      }
+
   		free(newname);
       newname=NULL;
+
     }
 	}
 
-	closedir( dp);
+	closedir( dp );
 } // void list(char *name){
 
 
