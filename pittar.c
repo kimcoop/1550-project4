@@ -48,7 +48,7 @@ void insert_archive( char *name ) {
 
   // need to get the contents of the file
 
-  archive.data_block[ insert_point ] = get_contents( name );
+  // archive.data_block[ insert_point ] = get_contents( name );
   ++archive.num_files;
   println( "archive num_files is %d ", archive.num_files );
 
@@ -121,6 +121,11 @@ int main( int argc, char *argv[] ) {
 
     }
   }
+
+  open_disk_test();
+  // write_test();
+  read_test();
+  file_content_test();
 
   return 0;
  

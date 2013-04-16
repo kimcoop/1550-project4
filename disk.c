@@ -6,21 +6,7 @@ int write_block( int *block);
 void open_disk_test();
 void write_test();
 void read_test();
-
-
-
-// typedef struct directoryNode{
-//   char* name;
-//   int numberOfChildren;
-//   // int inodeNumber;
-//   struct directoryNode* parent;
-//   struct directoryNode* children[MAX_CHILDREN];
-// }directoryNode_t;
-
-// directoryNode_t* root;
-
-
-#include "my_header.h"
+void file_content_test();
 
 #define DISKFULL -1
 // #define BLOCK_SIZE 1024
@@ -31,7 +17,7 @@ int size_bytes;
 
 int open_disk(char *filename, int num_bytes) {
   size_bytes = num_bytes;
-  disk_descriptor = create_descriptor("Disk");
+  disk_descriptor = create_descriptor("archive.pitt");
 
   println( "open_disk ");
 
@@ -48,7 +34,6 @@ int create_descriptor(char *filename) {
   int new_descriptor;
 
   switch(errno) {
-    //file doesn't exist so create binary file and then open it with open
     case ENOENT:
       println(" needing to create a new file ");
       fp = fopen(filename,"wb");
@@ -103,12 +88,39 @@ int write_block( int *block ) {
 }
 
 
+void file_content_test() {
 
-int main() {
-  open_disk_test();
-  // write_test();
-  read_test();
-  return 0;
+  FILE *fp;
+  char c;
+  
+  fp=fopen( TEST_FILE, "r" );
+  
+  int i, size = get_file_size( TEST_FILE );
+
+  int *pointer_write = malloc( size );
+
+  for(i = 0; i < size; i++) {
+    fscanf( fp, "%c", &c );  /*  read an integer from the file into i  */
+    pointer_write[i] = c;
+    printf("%c", c);
+  }
+
+  fclose( fp);
+  println("");
+  println("----");
+
+  int *pointer_read = malloc( size );
+  write_block( pointer_write );
+  read_block( pointer_read );
+
+  for (i = 0; i < size; i++) {
+    // printf("position %d\n", i);
+    // printf("%d, %d\n", pointer_write[i], pointer_read[i]);
+    printf("%c",pointer_read[i]);
+    assert(pointer_write[i] == pointer_read[i]);
+  }
+
+
 }
 
 //this function tests opening a disk and printing how big those disks are allowed to be

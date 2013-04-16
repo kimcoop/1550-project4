@@ -18,6 +18,7 @@
 #define TRUE 1
 #define FALSE 0
 #define OUTPUT_FILE "output.txt"
+#define TEST_FILE "testfile.txt"
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
 #define DEBUG 0
@@ -42,3 +43,4 @@ DIR* p_opendir( char* name );
 #include "my_print.c"
 #include "utils.c"
 #include "dir.c"
+#include "disk.c"
