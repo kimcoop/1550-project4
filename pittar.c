@@ -40,16 +40,35 @@ void insert_archive( char *name ) {
   }
 
   println("inserting at index %d", insert_index);
+  int f_size = get_file_size( name );
 
-  data->f_size = get_file_size( name );
+  data->f_size = f_size;
   data->start = insert_point;
   archive.meta_data[ archive.num_files ] =  data;
+
+  // need to get the contents of the file
+
+  archive.data_block[ insert_point ] = get_contents( name );
   ++archive.num_files;
   println( "archive num_files is %d ", archive.num_files );
 
 }
 
 
+void print_archive() {
+
+  println(" print_archive" );
+  println( "d_name: %s", archive.d_name );
+  println( "num_files: %d ", archive.num_files );
+
+  int i;
+  for ( i=0; i < archive.num_files; i++ ) {
+    println( "meta_data file name: %s", archive.meta_data[ i ]->f_name );
+    // println( "meta_data file ext: %s", archive.meta_data[ i ]->f_name );
+    println( "meta_data file size: %lu", archive.meta_data[ i ]->f_size );
+    println( "meta_data file start: %lu", archive.meta_data[ i ]->start );
+  }
+}
 
 void print_hierarchy( char* dirname ) {
 
@@ -95,6 +114,7 @@ int main( int argc, char *argv[] ) {
       if ( flag == 'c' ) {
         init_archive();
         insert_archive( "testfile.c" );
+        print_archive();
         // ensure file list present
         // one at a time, append files from list into archive
       }

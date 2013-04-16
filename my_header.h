@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <fcntl.h>
+#include <assert.h>
 
 #define MEDIUM_BUFFER 32
 #define SMALL_BUFFER 12
