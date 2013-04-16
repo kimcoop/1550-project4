@@ -1,46 +1,45 @@
-#ifndef DISK_H
-#define DISK_H
-
-//opens some random disk
-int openDisk(char *filename, int num_bytes);
-//creates descriptor
-int createDescriptor(char *filename);
-//reads blocks
-int readBlock(int disk, int block_num, int *block);
-//writes blocks
-int writeBlock(int disk, int block_num, int *block);
-//syncs the disk
-void syncDisk();
+int open_disk(char *filename, int num_bytes);
+int create_descriptor(char *filename);
+int read_block( int *block);
+int write_block( int *block);
 
 void open_disk_test();
 void write_test();
 void read_test();
 
-#endif
 
 
+// typedef struct directoryNode{
+//   char* name;
+//   int numberOfChildren;
+//   // int inodeNumber;
+//   struct directoryNode* parent;
+//   struct directoryNode* children[MAX_CHILDREN];
+// }directoryNode_t;
 
+// directoryNode_t* root;
 
 
 #include "my_header.h"
 
 #define DISKFULL -1
+// #define BLOCK_SIZE 1024
 
 int disk = 0;
 int disk_descriptor;
 int size_bytes;
 
-int openDisk(char *filename, int num_bytes) {
+int open_disk(char *filename, int num_bytes) {
   size_bytes = num_bytes;
-  disk_descriptor = createDescriptor("Disk");
+  disk_descriptor = create_descriptor("Disk");
 
-  println( "openDisk ");
+  println( "open_disk ");
 
   return 1;
 }
 
-//creates a descriptor that openDisk can call
-int createDescriptor(char *filename) {
+//creates a descriptor that open_disk can call
+int create_descriptor(char *filename) {
   int flags;
   flags = O_RDWR;
   int descriptor = open(filename, flags);
@@ -54,9 +53,7 @@ int createDescriptor(char *filename) {
       println(" needing to create a new file ");
       fp = fopen(filename,"wb");
       fclose(fp);
-      new_descriptor = open(filename, flags);
-      return new_descriptor;
-      printf("lol\n");
+      descriptor = open(filename, flags);
       break;
     case EACCES:
       printf("Permission denied.\n");
@@ -66,57 +63,44 @@ int createDescriptor(char *filename) {
       break;
   }
 
-  println(" createDescriptor ");
   return descriptor;
 }
 
 
-int readBlock(int disk, int block_num, int *block) {
-  int blocksize = 1024;
-  int position = block_num * blocksize;
-  println(" readBlock ");
+int read_block( int *block ) {
 
-  //move file pointer
-  // lseek(disk_descriptor, position, SEEK_SET);
+  // int position = BLOCK_SIZE;
+  int position = 0;
+  println(" read_block ");
 
-  pread(disk_descriptor, block, blocksize, position);
+  pread( disk_descriptor, block, BLOCK_SIZE, position );
 
   return 1;
 }
 
 
-int writeBlock(int disk, int block_num, int *block) {
+int write_block( int *block ) {
 
-  int blocksize = 1024;
-  int *contents = malloc(1024);
+  int *contents = malloc( BLOCK_SIZE );
+  
+  // if ( BLOCK_SIZE > size_bytes ) {
+  //   printf("The disk is full.\n");
+  //   return DISKFULL;
+  // }
+  
+  // int position = BLOCK_SIZE;
+  int position = 0;
+  pwrite( disk_descriptor, block, BLOCK_SIZE, position );
 
-  println("writeBlock block_num %d", block_num );
-  if (block_num * blocksize > size_bytes) {
-    printf("The disk is full.\n");
-    return DISKFULL;
-  }
-
-  //to find the position in the individual disk where the block should be written
-  // int position = (block_num / 3) * blocksize;
-  int position = block_num * blocksize;
-
-  pwrite(disk_descriptor, block, blocksize, position);
-  // lseek(disk_descriptor, position, SEEK_SET);
-  // pread(descriptor2, contents, blocksize, position);
   return 1;
 
 }
 
-
-void syncDisk() {
-  println(" syncDisk ");
-  // _flushlbf();
-}
 
 
 int main() {
   open_disk_test();
-  write_test();
+  // write_test();
   read_test();
   return 0;
 }
@@ -125,12 +109,12 @@ int main() {
 void open_disk_test() {
 
   int test_bytes = 300;
+  open_disk("yerrr", test_bytes);
   FILE *filetest = fopen("Disk", "r");
-  if (filetest == NULL) {
-    perror ("The following error occurred");
-    printf( "Value of errno: %d\n", errno );
-  }
-  openDisk("yerrr", test_bytes);
+  // if (filetest == NULL) {
+  //   perror("The following error occurred");
+  //   printf( "Value of errno: %d\n", errno );
+  // }
   assert(test_bytes == size_bytes);
   assert(filetest != NULL);
   
@@ -138,30 +122,38 @@ void open_disk_test() {
 
 //tests if the write function works
 void write_test() {
-  int *test_pointer = malloc(1024);
+  int *test_pointer = malloc(BLOCK_SIZE);
   int i = 0;
 
   for(i = 0; i < 256; i++) {
-    test_pointer[i] = i * 200;
+    test_pointer[i] = i;
   }
-  writeBlock(1, 1, test_pointer);
+  write_block( test_pointer );
 }
 
 //writes information to a file and then reads it and compares if they are the same
 void read_test() {
-  int *test_pointerR = malloc(1024);
-  int *test_pointerW = malloc(1024);
+  int *test_pointer_read = malloc(BLOCK_SIZE);
+  int *test_pointer_write = malloc(BLOCK_SIZE);
 
   int i = 0;
-  for(i = 0; i < 256; i++) {
-    test_pointerW[i] = i * 200;
+  for(i = 0; i < 50; i++) {
+    test_pointer_write[i] = i;
   }
-  writeBlock(1, 11, test_pointerW);
-  readBlock(1, 11, test_pointerR);
+  write_block( test_pointer_write );
+  read_block( test_pointer_read );
 
-  for (i = 0; i < 256; i++) {
+  for (i = 0; i < 50; i++) {
     // printf("position %d\n", i);
-    // printf("%d, %d\n", test_pointerW[i], test_pointerR[i]);
-    assert(test_pointerW[i] == test_pointerR[i]);
+    // printf("%d, %d\n", test_pointer_write[i], test_pointer_read[i]);
+    assert(test_pointer_write[i] == test_pointer_read[i]);
   }
 }
+
+
+
+
+
+
+
+
