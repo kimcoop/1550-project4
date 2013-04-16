@@ -75,6 +75,12 @@ int read_block( int *block ) {
 
   pread( disk_descriptor, block, BLOCK_SIZE, position );
 
+  int i = 0;
+  for(i = 0; i < 50; i++) {
+    // printf("%c", block[i]);
+  }
+  println("");
+
   return 1;
 }
 
@@ -138,7 +144,7 @@ void read_test() {
 
   int i = 0;
   for(i = 0; i < 50; i++) {
-    test_pointer_write[i] = i;
+    test_pointer_write[i] = 'a';
   }
   write_block( test_pointer_write );
   read_block( test_pointer_read );
