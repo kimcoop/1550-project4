@@ -52,9 +52,14 @@ int is_dir( struct stat* buf );
 void p_stat( char*, struct stat* );
 DIR* p_opendir( char* name );
 
+// compression.c
+int file_exists( const char *name);
+void decompress_file( char* filename );
+char* compress_file( char* filename );
+
 #include "my_print.c"
 #include "utils.c"
-#include "dir.c"
+#include "structs.c"
 #include "compression.c"
 // #include "disk.c"
 

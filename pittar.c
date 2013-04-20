@@ -16,38 +16,55 @@ char CURR_DIR[ SMALL_BUFFER ];
 Archive archive;
 FILE* disk;
 
-void write_to_disk(long insert_point, int f_size, char* name );
+void flush_to_disk(long insert_offset, int f_size );
+
+void get_archive() {
+  println("get_archive");
+  disk = fopen( DISK_NAME, "r+b" );
+
+  fread( &archive, sizeof( Archive ), 1, disk );
+
+  println(" got heder info from file? ");
+  println(" READ IN*** header.d_name is %s ", archive.header.d_name );
+
+}
 
 void init_archive() {
   
-  // init respective pieces of Archive 
-  archive.header = ( Header* ) malloc( sizeof( Header ) );
-  archive.header = ( Header* ) malloc( sizeof( Header ) );
-  int i;
-  for ( i=0; i < MAX_FILES_IN_DIR; i++ )
-    archive.meta_data[ i ] = ( MetaData* ) malloc( sizeof( MetaData ));
+  if ( file_exists( DISK_NAME ) ) {
 
-  strcpy( archive.header->d_name, DIR_NAME );
-  archive.header->num_files = 0;
+    println(" disk EXISTS** (delete or access?)" );
+    get_archive();
 
-  disk = fopen( DISK_NAME, "a+b" );
-  assert( disk != NULL );
+  } else {
+    println(" disk does not exist yet; initializing " );
+
+    strcpy( archive.header.d_name, DIR_NAME );
+    archive.header.num_files = 0;
+    
+    disk = fopen( DISK_NAME, "a+b" );
+    // /The arguments to fwrite() are the data to be printed, the size of one data item, the number of data items, and the file pointer.
+    fwrite( &archive, sizeof( Archive ), 1, disk );
+    println(" fwrote archive ");
+  }
 }
 
-long get_insert_point() {
 
-  long insert_point = (long) archive.data_block;
+
+long get_insert_offset() {
+
+  long insert_offset = (long) archive.data_block;
    
-  if ( archive.header->num_files > 0 ) {
-    int prev_index = archive.header->num_files - 1;
-    MetaData* prev = archive.meta_data[ prev_index ];
-    insert_point = prev->f_start + prev->f_size;
+  if ( archive.header.num_files > 0 ) {
+    int prev_index = archive.header.num_files - 1;
+    MetaData prev = archive.meta_data[ prev_index ];
+    insert_offset = prev.f_start + prev.f_size;
     println(" calculating data_block insertion point based on previous files in archive" );
   }
 
-   println("insert point is %lu ", insert_point );
+   println("insert offset is %lu ", insert_offset );
 
-   return insert_point;
+   return insert_offset;
 
 }
 
@@ -55,49 +72,61 @@ void append_to_archive( char *name ) {
 
   // TODO: check overflow
   // TODO: check file named name not already present in archive 
-  MetaData* data = ( MetaData* ) malloc( sizeof(MetaData) );
-  strcpy( data->f_name, name );
+  
+  if ( strlen(name) > MAX_FILENAME )
+    println( "Warning: filename %s is too long and will be truncated.", name );
   
   println(" archive data begins at %lu for file %s", (long) archive.data_block, name );
 
-  long insert_point = get_insert_point();
+  long insert_offset = get_insert_offset();
   int f_size = get_file_size( name );
 
-  data->f_size = f_size;
-  data->f_start = insert_point;
-  archive.meta_data[ archive.header->num_files ] =  data;
+  strcpy( archive.meta_data[ archive.header.num_files ].f_name, name );
+  archive.meta_data[ archive.header.num_files ].f_start = insert_offset;
+  archive.meta_data[ archive.header.num_files ].f_size = f_size;
 
-  // archive.data_block[ insert_point ] = get_contents( name );
-  write_to_disk( insert_point, f_size, name );
-  ++archive.header->num_files;
-  println( "archive num_files increased to %d ", archive.header->num_files );
-
-}
-
-void write_to_disk( long insert_point, int f_size, char* name ) {
-
-  println(" write_to_disk ");
-
-
-  char* contents = malloc( f_size );
+  char* f_contents = malloc( f_size );
   FILE* fp = fopen( name, "rb" );
-  fread( contents, 1, f_size, fp );
-  // println(" file %s contents:: ", name);
-  // println("------------------------------------------------");
-  // println(" %s", contents );
-  // println("------------------------------------------------");
+  fread( f_contents, 1, f_size, fp );
+  // strncpy( archive.data_block + insert_offset, f_contents, f_size );
 
-  // pwrite( disk_descriptor, contents, f_size, 0 );
-  fwrite( contents, sizeof( contents[0] ), f_size/sizeof( contents[0] ), disk );
-  // pwrite( int fd, const void* buf, size_t count, off_t offset );
+  // flush_to_disk( insert_offset, f_size );
+  ++archive.header.num_files;
+  println( "archive num_files increased to %d ", archive.header.num_files );
 
   fclose( fp );
 
 }
 
+// void flush_to_disk( long offset, int size ) {
+
+//   char contents[ size ];
+//   // strncpy( archive.data_block + insert_offset, f_contents, f_size );
+//   strncpy( archive.data_block +  offset, contents, size );
+
+//   println(" flush_to_disk ");
+
+//   // println(" file %s contents:: ", name);
+//   // println("------------------------------------------------");
+//   // println(" %s", contents );
+//   // println("------------------------------------------------");
+
+//   // pwrite( disk_descriptor, contents, size, 0 );
+
+//   fwrite( contents, sizeof( contents[0] ), size/sizeof( contents[0] ), disk );
+
+//   // update header on disk (num_files)
+//   // update header on disk (new meta_data ptr)
+//   // fseek( disk, archive.data_block, SEEK_SET);
+
+//   // pwrite( int fd, const void* buf, size_t count, off_t offset );
+// }
+
 void read_from_disk() {
 
-  fseek( disk, 0, SEEK_SET);
+  // rewind to beginning of archive data block to read file contents
+  // TODO: rewind to disk data block location
+  fseek( disk, 0, SEEK_SET );
 
   char *buffer = malloc( BLOCK_SIZE );
   assert( buffer != NULL );
@@ -117,15 +146,15 @@ void read_from_disk() {
 void print_archive() {
 
   println(" print_archive" );
-  println( "d_name: %s", archive.header->d_name );
-  println( "num_files: %d ", archive.header->num_files );
+  println( "d_name: %s", archive.header.d_name );
+  println( "num_files: %d ", archive.header.num_files );
 
   int i;
-  for ( i=0; i < archive.header->num_files; i++ ) {
+  for ( i=0; i < archive.header.num_files; i++ ) {
     println("---FILE %d---", i );
-    println( "meta_data file name: %s", archive.meta_data[ i ]->f_name );
-    println( "meta_data file size: %lu", archive.meta_data[ i ]->f_size );
-    println( "meta_data file start: %lu", archive.meta_data[ i ]->f_start );
+    println( "meta_data file name: %s", archive.meta_data[ i ].f_name );
+    println( "meta_data file size: %lu", archive.meta_data[ i ].f_size );
+    println( "meta_data file start: %lu", archive.meta_data[ i ].f_start );
   }
 }
 
@@ -186,11 +215,11 @@ int main( int argc, char *argv[] ) {
         // read_from_disk();
         fclose( disk );
       }
-      if ( flag == 'x' ) { // unarchive (extract -> decompress)
+      if ( flag == 'x' ) { // unarchive (extract . decompress)
         // for each meta data in archive.header
           // collect the filename f_name and size f_size
           // create a char[f_size] buffer
-          // read the contents of meta_data->start into buffer
+          // read the contents of meta_data.start into buffer
           // save buffer as a binary file named f_name
           // decompress file named f_name
         // end foreach
