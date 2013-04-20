@@ -12,7 +12,6 @@ Due April 20, 2013
 #define DISK_NAME "archive.pitt"
 
 int FIRST_LEVEL = 0;
-int disk_descriptor;
 char CURR_DIR[ SMALL_BUFFER ];
 Archive archive;
 FILE* disk;
@@ -20,33 +19,28 @@ FILE* disk;
 void write_to_disk(long insert_point, int f_size, char* name );
 
 void init_archive() {
-  println("initArchive");
-  disk_descriptor = create_descriptor(  DISK_NAME );
-  println( "disk_descriptor created");
+  
   // init respective pieces of Archive 
   archive.header = ( Header* ) malloc( sizeof( Header ) );
   archive.header = ( Header* ) malloc( sizeof( Header ) );
   int i;
-  for ( i=0; i < MAX_FILES_IN_DIR; i++ ) {
+  for ( i=0; i < MAX_FILES_IN_DIR; i++ )
     archive.meta_data[ i ] = ( MetaData* ) malloc( sizeof( MetaData ));
-  }
-  println("archive.header->d_name %s", archive.header->d_name );
+
   strcpy( archive.header->d_name, DIR_NAME );
   archive.header->num_files = 0;
 
-  disk = fopen( DISK_NAME, "r+" );
+  disk = fopen( DISK_NAME, "a+b" );
   assert( disk != NULL );
 }
 
 void append_to_archive( char *name ) {
-  println(" append_to_archive file %s", name );
-  println( "archive num_files is %d ", archive.header->num_files );
 
   // TODO; check overflow
   MetaData* data = ( MetaData* ) malloc( sizeof(MetaData) );
   strcpy( data->f_name, name );
   
-  println(" archive data begins at %lu ", (long)archive.data_block );
+  println(" archive data begins at %lu for file %s", (long) archive.data_block, name );
 
   int insert_index = archive.header->num_files;
   long insert_point = (long) archive.data_block; // assume 0 files (overwrite if more)
@@ -78,23 +72,21 @@ void write_to_disk( long insert_point, int f_size, char* name ) {
 
   println(" write_to_disk ");
 
+  // FILE *fp;
+// fp=fopen("c:\\test.bin", "wb");
+// char x[10]="ABCDEFGHIJ";
+// fwrite(x, sizeof(x[0]), sizeof(x)/sizeof(x[0]), fp);
+
   char* contents = malloc( f_size );
-  FILE* fp = fopen( name, "r" );
+  FILE* fp = fopen( name, "rb" );
   fread( contents, 1, f_size, fp );
   println(" file %s contents:: ", name);
+  println("------------------------------------------------");
   println(" %s", contents );
-
-
-/*if(0 != fseek(fd,11,SEEK_CUR))
-    {
-        printf("\n fseek() failed\n");
-        return 1;
-    }
-
-    printf("\n fseek() successful\n");*/
+  println("------------------------------------------------");
 
   // pwrite( disk_descriptor, contents, f_size, 0 );
-  fwrite( contents, BLOCK_SIZE, f_size, disk );
+  fwrite( contents, sizeof( contents[0] ), f_size/sizeof( contents[0] ), disk );
   // pwrite( int fd, const void* buf, size_t count, off_t offset );
 
   fclose( fp );
@@ -103,12 +95,18 @@ void write_to_disk( long insert_point, int f_size, char* name ) {
 
 void read_from_disk() {
 
+  fseek( disk, 0, SEEK_SET);
+
   char *buffer = malloc( BLOCK_SIZE );
   assert( buffer != NULL );
-  size_t nread;
+  int num_read;
 
-  while (( nread = fread(buffer, 1, BLOCK_SIZE, disk )) > 0 ) {
-    println("buffer: %s", buffer );
+  // fread(void *restrict ptr, size_t size, size_t nitems, FILE *restrict stream);
+
+  while ( (num_read=fread( buffer, 1, BLOCK_SIZE, disk ))  > 0 ) {
+    println("***buffer: %s", buffer );
+    num_read = fread( buffer, 1, BLOCK_SIZE, disk );
+    println("");
   }
   println(" read disk");
 }
@@ -156,11 +154,10 @@ int main( int argc, char *argv[] ) {
     return 0;
   } else { // overwrite defaults
     
-    int i;
-    // char flag[ SMALL_BUFFER ];
     char flag;
     strcpy( CURR_DIR, "." );
 
+    int i;
     for ( i = 1; i < argc; i++ ) {
       
       flag = argv[i][1];

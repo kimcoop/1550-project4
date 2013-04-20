@@ -24,28 +24,3 @@ typedef struct {
   MetaData* meta_data[ MAX_FILES_IN_DIR ]; // array of pointers to meta_data
 
 } Archive;
-
-
-int create_descriptor(char *filename) {
-  int flags;
-  flags = O_RDWR;
-  int descriptor = open( filename, flags );
-
-  switch(errno) {
-    case ENOENT:
-      println(" needing to create a new disk file ");
-      FILE *fp = fopen(filename,"w");
-      fclose(fp);
-      descriptor = open(filename, flags);
-      break;
-    case EACCES:
-      printf("Permission denied.\n");
-      break;
-    case EMFILE:
-      printf("No file handle available. \n");
-      break;
-  }
-
-  println(" created descriptor successfully ");
-  return descriptor;
-}
