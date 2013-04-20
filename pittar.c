@@ -158,7 +158,7 @@ int main( int argc, char *argv[] ) {
     strcpy( CURR_DIR, "." );
 
     int i;
-    for ( i = 1; i < argc; i++ ) {
+    for ( i=1; i < argc; i++ ) {
       
       flag = argv[i][1];
         // num_cashiers = atoi( argv[ ++i ] );
@@ -168,12 +168,17 @@ int main( int argc, char *argv[] ) {
         print_meta_data( CURR_DIR );
       if ( flag == 'c' ) {
         init_archive();
+
+        println(" iterating through files/directoresi in argv" );
+        int j;
+        for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
+          compress_file( argv[j] );          
+        }
+
         append_to_archive( TEST_FILE );
         print_archive();
         read_from_disk();
         fclose( disk );
-        // ensure file list present
-        // one at a time, append files from list into archive
       }
 
     }

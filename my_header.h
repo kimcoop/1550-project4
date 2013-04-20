@@ -19,6 +19,7 @@
 #define FALSE 0
 #define OUTPUT_FILE "output.txt"
 #define TEST_FILE "testfile.txt"
+#define TEST_FILE_LONG "testfile_long.txt"
 
 #define BLOCK_SIZE 512 //size of a disk block
 #define MAX_FILENAME 11
@@ -26,8 +27,6 @@
 #define MAX_FILES_IN_DIR (BLOCK_SIZE - (MAX_FILENAME + 1) - sizeof(int)) / ((MAX_FILENAME + 1) + sizeof(size_t) + sizeof(long))
 
 #define MAX_DATA_IN_BLOCK (BLOCK_SIZE - sizeof(unsigned long))
-
-
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
 #define DEBUG 0
@@ -56,4 +55,7 @@ DIR* p_opendir( char* name );
 #include "my_print.c"
 #include "utils.c"
 #include "dir.c"
+#include "compression.c"
 // #include "disk.c"
+
+
