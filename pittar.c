@@ -34,31 +34,37 @@ void init_archive() {
   assert( disk != NULL );
 }
 
+long get_insert_point() {
+
+  long insert_point = (long) archive.data_block;
+   
+  if ( archive.header->num_files > 0 ) {
+    int prev_index = archive.header->num_files - 1;
+    MetaData* prev = archive.meta_data[ prev_index ];
+    insert_point = prev->f_start + prev->f_size;
+    println(" calculating data_block insertion point based on previous files in archive" );
+  }
+
+   println("insert point is %lu ", insert_point );
+
+   return insert_point;
+
+}
+
 void append_to_archive( char *name ) {
 
-  // TODO; check overflow
+  // TODO: check overflow
+  // TODO: check file named name not already present in archive 
   MetaData* data = ( MetaData* ) malloc( sizeof(MetaData) );
   strcpy( data->f_name, name );
   
   println(" archive data begins at %lu for file %s", (long) archive.data_block, name );
 
-  int insert_index = archive.header->num_files;
-  long insert_point = (long) archive.data_block; // assume 0 files (overwrite if more)
-
-  println("insert point is %lu ", insert_point );
-
-  if ( archive.header->num_files > 0 ) {
-    int prev_index = archive.header->num_files - 1;
-    MetaData* prev = archive.meta_data[ prev_index ];
-    insert_point = prev->start + prev->f_size;
-    println(" calculating data_block insertion point based on previous files in archive" );
-  }
-
-  println("inserting at index %d", insert_index);
+  long insert_point = get_insert_point();
   int f_size = get_file_size( name );
 
   data->f_size = f_size;
-  data->start = insert_point;
+  data->f_start = insert_point;
   archive.meta_data[ archive.header->num_files ] =  data;
 
   // archive.data_block[ insert_point ] = get_contents( name );
@@ -72,18 +78,14 @@ void write_to_disk( long insert_point, int f_size, char* name ) {
 
   println(" write_to_disk ");
 
-  // FILE *fp;
-// fp=fopen("c:\\test.bin", "wb");
-// char x[10]="ABCDEFGHIJ";
-// fwrite(x, sizeof(x[0]), sizeof(x)/sizeof(x[0]), fp);
 
   char* contents = malloc( f_size );
   FILE* fp = fopen( name, "rb" );
   fread( contents, 1, f_size, fp );
-  println(" file %s contents:: ", name);
-  println("------------------------------------------------");
-  println(" %s", contents );
-  println("------------------------------------------------");
+  // println(" file %s contents:: ", name);
+  // println("------------------------------------------------");
+  // println(" %s", contents );
+  // println("------------------------------------------------");
 
   // pwrite( disk_descriptor, contents, f_size, 0 );
   fwrite( contents, sizeof( contents[0] ), f_size/sizeof( contents[0] ), disk );
@@ -120,9 +122,10 @@ void print_archive() {
 
   int i;
   for ( i=0; i < archive.header->num_files; i++ ) {
+    println("---FILE %d---", i );
     println( "meta_data file name: %s", archive.meta_data[ i ]->f_name );
     println( "meta_data file size: %lu", archive.meta_data[ i ]->f_size );
-    println( "meta_data file start: %lu", archive.meta_data[ i ]->start );
+    println( "meta_data file start: %lu", archive.meta_data[ i ]->f_start );
   }
 }
 
@@ -172,15 +175,25 @@ int main( int argc, char *argv[] ) {
         println(" iterating through files/directores in argv" );
         int j;
         for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
-          compress_file( argv[j] );          
+          char* compressed_file;
+          // get_file_size( argv[j] );
+          compressed_file = compress_file( argv[j] );       
+          // get_file_size( compressed_file );
+          append_to_archive( compressed_file );
         }
 
-        append_to_archive( TEST_FILE );
         print_archive();
-        read_from_disk();
+        // read_from_disk();
         fclose( disk );
       }
-      if ( flag == 'd' ) { // test decompress
+      if ( flag == 'x' ) { // unarchive (extract -> decompress)
+        // for each meta data in archive.header
+          // collect the filename f_name and size f_size
+          // create a char[f_size] buffer
+          // read the contents of meta_data->start into buffer
+          // save buffer as a binary file named f_name
+          // decompress file named f_name
+        // end foreach
         int j;
         for ( j=i+1; j < argc; j++ ) {
          decompress_file( argv[j] );

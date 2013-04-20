@@ -78,6 +78,7 @@ char* compress_file( char* filename ) {
     println("file %s compression didn't work", new_name );
     return filename;
   }
+  return filename;
 
 }
 

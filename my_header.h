@@ -22,7 +22,7 @@
 #define TEST_FILE_LONG "testfile_long.txt"
 
 #define BLOCK_SIZE 512 //size of a disk block
-#define MAX_FILENAME 11
+#define MAX_FILENAME 20
 #define MODE_SIZE 3
 #define MAX_FILES_IN_DIR (BLOCK_SIZE - (MAX_FILENAME + 1) - sizeof(int)) / ((MAX_FILENAME + 1) + sizeof(size_t) + sizeof(long))
 
