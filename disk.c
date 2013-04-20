@@ -9,20 +9,12 @@ void read_test();
 void file_content_test();
 
 #define DISKFULL -1
-// #define BLOCK_SIZE 1024
+#define DISK "archive.pitt"
 
 int disk = 0;
 int disk_descriptor;
 int size_bytes;
 
-int open_disk(char *filename, int num_bytes) {
-  size_bytes = num_bytes;
-  disk_descriptor = create_descriptor("archive.pitt");
-
-  println( "open_disk ");
-
-  return 1;
-}
 
 //creates a descriptor that open_disk can call
 int create_descriptor(char *filename) {
@@ -35,8 +27,8 @@ int create_descriptor(char *filename) {
 
   switch(errno) {
     case ENOENT:
-      println(" needing to create a new file ");
-      fp = fopen(filename,"wb");
+      println(" needing to create a new disk file ");
+      fp = fopen(filename,"w");
       fclose(fp);
       descriptor = open(filename, flags);
       break;
