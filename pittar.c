@@ -169,7 +169,7 @@ int main( int argc, char *argv[] ) {
       if ( flag == 'c' ) {
         init_archive();
 
-        println(" iterating through files/directoresi in argv" );
+        println(" iterating through files/directores in argv" );
         int j;
         for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
           compress_file( argv[j] );          
@@ -179,6 +179,12 @@ int main( int argc, char *argv[] ) {
         print_archive();
         read_from_disk();
         fclose( disk );
+      }
+      if ( flag == 'd' ) { // test decompress
+        int j;
+        for ( j=i+1; j < argc; j++ ) {
+         decompress_file( argv[j] );
+        }
       }
 
     }
