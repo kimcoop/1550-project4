@@ -212,6 +212,18 @@ int main( int argc, char *argv[] ) {
     for ( i=1; i < argc; i++ ) {
       
       flag = argv[i][1];
+      if ( flag == 'h' ) {
+        char* str = ""
+        "\t -c \t <archive-file> <file/directory list>\n"
+        "\t -a \t append <file/directory list> in existing archive file <archive-file>\n"
+        "\t -x \t extract all files and catalogs from archived from <archive-file>\n"
+        "\t -m \t print out meta-data (owner, group, rights) from <archive-file>\n"
+        "\t -p \t display file hierarch(y/ies) readably from files/directories stored in <archive-file>\n"
+        "\t -j \t archive the files contained in <file/directory list> in compressed form while creating <archive-file>\n";
+
+        println( "--OPTIONS--" );
+        println( "%s", str );
+      }
       if ( flag == 'j' ) {
         COMPRESS_FLAG = TRUE;
       } 
@@ -274,12 +286,3 @@ int main( int argc, char *argv[] ) {
   return 0;
  
 }
-
-/*
--c <archive-file> <file/directory list>
--a append <file/directory list> in existing archive file <archive-file>
--x extract all files and catalogs from archived from <archive-file>
--m print out meta-data (owner, group, rights) from <archive-file>
--p display file hierarch(y/ies) readably (!) from files/directories stored in <archive-file>
--j archive the files contained in <file/directory list> in compressed form while creating <archive-file>
-*/
