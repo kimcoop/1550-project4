@@ -22,10 +22,17 @@ FILE* disk;
 
 void update_disk() {
 
-  fseek( disk, 0, SEEK_SET );
-  println("Updated disk (%d files)", archive.header.num_files );
+  println("here5");
+  assert( disk != NULL );
+
+  fseek( disk, 0L, SEEK_SET );
+
+  println("here6");
   fwrite( &archive, sizeof( Archive ), 1, disk );
+  println("here7");
+
   fseek( disk, 0L, SEEK_END );
+  println("Updated disk (%d files)", archive.header.num_files );
 
 }
 
@@ -40,16 +47,23 @@ void decompress_all() {
   for ( i=0; i < archive.header.num_files; i++ ) {
     MetaData meta_data = archive.meta_data[i];
 
-    char filename[ MAX_FILENAME ];
+    char filename[ MAX_FILENAME + 1];
     strcpy( filename, meta_data.f_name );
+    strcat( filename, "m" );
 
     FILE* file_to_decompress = fopen( filename, "wb" );
     println( "Reconstructing file %s", filename );
 
     char file_contents[ meta_data.f_size ];
-    strncpy( file_contents, archive.data_block+meta_data.f_start, meta_data.f_size );
 
-    fwrite( file_contents, meta_data.f_size, 1, file_to_decompress );
+
+  // fread( f_contents, f_size, 1, fp );
+  // strcpy( archive.data_block+insert_offset, f_contents );
+
+    strcpy( file_contents, archive.data_block+meta_data.f_start );
+    println(" NEEDS TO MATCH: %lu ",  meta_data.f_start);
+
+    fwrite( &file_contents, meta_data.f_size, 1, file_to_decompress );
 
     decompress_file( filename );
   }
@@ -60,10 +74,10 @@ void init_archive() {
   if ( file_exists( DISK_NAME ) ) {
 
     println( "Retrieving existing archive..." );
-    disk = fopen( DISK_NAME, "r+b" );
+    disk = fopen( DISK_NAME, "rb+" );
 
     fread( &archive, sizeof( Archive ), 1, disk );
-    log( "Retrieved archive containing directory named %s with %d files", archive.header.d_name, archive.header.num_files );
+    println( "Retrieved archive containing directory named %s with %d files", archive.header.d_name, archive.header.num_files );
 
   } else {
     println( "Initializing archive" );
@@ -72,7 +86,7 @@ void init_archive() {
     archive.header.num_files = 0;
     archive.header.space_available = MAX_DATA_IN_BLOCK;
       
-    disk = fopen( DISK_NAME, "a+b" );
+    disk = fopen( DISK_NAME, "wb+" );
     // /The arguments to fwrite() are the data to be printed, the size of one data item, the number of data items, and the file pointer.
     update_disk();
   }
@@ -87,7 +101,7 @@ long get_insert_offset( char *name ) {
   long insert_offset = 0; // assume first file in archive (will be at archive.data_block+0)
   
   int i;
-  for ( i=0; i < archive.header.num_files; i++ ) {
+  for ( i=0; i <= archive.header.num_files; i++ ) {
     insert_offset += archive.meta_data[ i ].f_size;
   }
 
@@ -115,14 +129,15 @@ void append_to_archive( char *name ) {
     archive.header.space_available -= f_size;
   }
   
-  if ( sizeof(name) > MAX_FILENAME )
-    println( "Warning: filename %s is too long (will be truncated)", name );
+  // if ( sizeof(name) > MAX_FILENAME )
+  //   println( "Warning: filename %s is too long (will be truncated)", name );
   
 
   long insert_offset = get_insert_offset( name );
 
   strcpy( archive.meta_data[ archive.header.num_files ].f_name, name );
   archive.meta_data[ archive.header.num_files ].f_start = insert_offset;
+  println(" NEEDS TO MATCH: %lu ", insert_offset );
   archive.meta_data[ archive.header.num_files ].f_size = f_size;
 
   char* f_contents = malloc( f_size );
@@ -130,20 +145,17 @@ void append_to_archive( char *name ) {
 
   println("here2");
 
-  fseek( disk, sizeof(Header)+insert_offset, SEEK_SET );
   fread( f_contents, f_size, 1, fp );
+  strcpy( archive.data_block+insert_offset, f_contents );
   println("here2.5 contents %s", f_contents);
-  
-  // fread( &archive, sizeof( Archive ), 1, disk );
-  // char file_contents[ meta_data.f_size ];
-  //   strncpy( file_contents, archive.data_block+meta_data.f_start, meta_data.f_size );
   println("insert offset is %lu", insert_offset );
-  strncpy( archive.data_block, f_contents, f_size ); // concatenate the new file's contents to the archive's aggregate data_block
+  
   println("here3");
 
-  ++archive.header.num_files;
+  archive.header.num_files += 1;
 
   fclose( fp );
+  free( f_contents );
   update_disk();
 
 }
@@ -210,7 +222,6 @@ int main( int argc, char *argv[] ) {
     
     char flag;
     strcpy( CURR_DIR, "." );
-    init_archive();
 
     int COMPRESS_FLAG = FALSE;
 
@@ -218,13 +229,19 @@ int main( int argc, char *argv[] ) {
     for ( i=1; i < argc; i++ ) {
       
       flag = argv[i][1];
-      if ( flag == 'j' )
+      if ( flag == 'j' ) {
         COMPRESS_FLAG = TRUE;
-      if ( flag == 'p' )
+      } 
+      if ( flag == 'p' ) {
+        init_archive();
         print_archive();
-      if ( flag == 'm' )
+      }
+      if ( flag == 'm' ) {
+        init_archive();
         print_archive_meta_data();
+      }
       if ( flag == 'a' ) {
+        init_archive();
         if ( COMPRESS_FLAG ) { println( "Compressing files" ); }
         if ( !COMPRESS_FLAG ) { println( "Not compressing files" ); }
         assert( COMPRESS_FLAG );
@@ -239,6 +256,7 @@ int main( int argc, char *argv[] ) {
         }
       }
       if ( flag == 'c' ) {
+        init_archive();
         if ( COMPRESS_FLAG ) { println( "Compressing files" ); }
         if ( !COMPRESS_FLAG ) { println( "Not compressing files" ); }
         assert( COMPRESS_FLAG );
@@ -252,10 +270,14 @@ int main( int argc, char *argv[] ) {
           }
         }
       }
-      if ( flag == 'x' ) // unarchive (extract -> decompress)
+      if ( flag == 'x' ) {
+        init_archive();
         decompress_all();
-      if ( flag == 'r' )
+      } // unarchive (extract -> decompress)
+      if ( flag == 'r' ) {
+        init_archive();
         read_files();
+      }
       if ( flag == 'k' ) {
         println( "Decompressing files (command line args)" );
         int j;
