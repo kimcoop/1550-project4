@@ -20,14 +20,19 @@ char CURR_DIR[ SMALL_BUFFER ];
 Archive archive;
 FILE* disk;
 
+void update_disk() {
+
+  fseek( disk, 0, SEEK_SET );
+  println(" update_disk: num_files %d ", archive.header.num_files );
+  fwrite( &archive, sizeof( Archive ), 1, disk );
+
+  Archive archive_test;
+  fread( &archive_test, sizeof( Archive ), 1, disk );
+
+}
+
 void decompress_all() {
-  // for each meta data in archive.header
-    // collect the filename f_name and size f_size
-    // create a char[f_size] buffer
-    // read the contents of meta_data.start into buffer
-    // save buffer as a binary file named f_name
-    // decompress file named f_name
-  // end foreach
+
   init_archive();
   int i;
   for ( i=0; i < archive.header.num_files; i++ ) {
@@ -60,25 +65,25 @@ void init_archive() {
   
   if ( file_exists( DISK_NAME ) ) {
 
-    println(" disk EXISTS** (delete or access?)" );
-    println("get_archive");
+    println("getting existing archive");
     disk = fopen( DISK_NAME, "r+b" );
 
     fread( &archive, sizeof( Archive ), 1, disk );
     println(" READ IN*** header.d_name is %s ", archive.header.d_name );
+    println(" NUM_FILES IS %d", archive.header.num_files );
+    // println(" first filename is %s ", archive.meta_data[0].f_name );
 
     read_from_disk();
-    println(" NUM_FILES IS %d", archive.header.num_files );
 
   } else {
     println(" disk does not exist yet; initializing " );
 
     strcpy( archive.header.d_name, DIR_NAME );
     archive.header.num_files = 0;
-    
+      
     disk = fopen( DISK_NAME, "a+b" );
     // /The arguments to fwrite() are the data to be printed, the size of one data item, the number of data items, and the file pointer.
-    fwrite( &archive, sizeof( Archive ), 1, disk );
+    update_disk();
     println(" fwrote archive ");
   }
 }
@@ -129,6 +134,8 @@ void append_to_archive( char *name ) {
   println( "archive num_files increased to %d ", archive.header.num_files );
 
   fclose( fp );
+  println(" updating disk! num files is %d", archive.header.num_files );
+  update_disk();
 
 }
 
@@ -221,7 +228,7 @@ int main( int argc, char *argv[] ) {
           append_to_archive( compressed_file );
         }
 
-        print_archive();
+        // print_archive();
         // read_from_disk();
       }
       if ( flag == 'x' ) { // unarchive (extract -> decompress)
