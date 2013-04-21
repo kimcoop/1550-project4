@@ -78,7 +78,7 @@ static char sccsid[] = "@(#)compress.c	5.19 (Berkeley) 3/18/91";
 #ifndef SACREDMEM
 #define SACREDMEM	0
 #endif
-
+ 
 #ifndef USERMEM
 # define USERMEM 	450000	/* default user memory */
 #endif
@@ -391,11 +391,9 @@ main(argc, argv)
 		}
 		/* Check the magic number */
 		if (nomagic == 0) {
-		    if ((getchar() != (magic_header[0] & 0xFF))
-		     || (getchar() != (magic_header[1] & 0xFF))) {
-			fprintf(stderr, "%s: not in compressed format\n",
-			    *fileptr);
-		    continue;
+		    if ( (getchar() != (magic_header[0] & 0xFF)) || (getchar() != (magic_header[1] & 0xFF))) {
+					// fprintf(stderr, "%s: not in compressed format\n", *fileptr);
+		    	// continue;
 		    }
 		    maxbits = getchar();	/* set -b from file */
 		    block_compress = maxbits & BLOCK_MASK;
@@ -507,10 +505,9 @@ main(argc, argv)
 	} else {
 	    /* Check the magic number */
 	    if (nomagic == 0) {
-		if ((getchar()!=(magic_header[0] & 0xFF))
-		 || (getchar()!=(magic_header[1] & 0xFF))) {
-		    fprintf(stderr, "stdin: not in compressed format\n");
-		    exit(1);
+		if ((getchar()!=(magic_header[0] & 0xFF)) || (getchar()!=(magic_header[1] & 0xFF))) {
+		    // fprintf(stderr, "stdin: not in compressed format\n");
+		    // exit(1);
 		}
 		maxbits = getchar();	/* set -b from file */
 		block_compress = maxbits & BLOCK_MASK;

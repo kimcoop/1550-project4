@@ -48,22 +48,16 @@ void decompress_all() {
     MetaData meta_data = archive.meta_data[i];
 
     char filename[ MAX_FILENAME + 1];
-    strcpy( filename, meta_data.f_name );
-    strcat( filename, "m" );
+    strcpy( filename, "m" );
+    strcat( filename, meta_data.f_name );
 
     FILE* file_to_decompress = fopen( filename, "wb" );
     println( "Reconstructing file %s", filename );
 
     char file_contents[ meta_data.f_size ];
-
-
-  // fread( f_contents, f_size, 1, fp );
-  // strcpy( archive.data_block+insert_offset, f_contents );
-
     strcpy( file_contents, archive.data_block+meta_data.f_start );
-    println(" NEEDS TO MATCH: %lu ",  meta_data.f_start);
-
     fwrite( &file_contents, meta_data.f_size, 1, file_to_decompress );
+    // TODO: remove from archive
 
     decompress_file( filename );
   }
@@ -87,8 +81,8 @@ void init_archive() {
     archive.header.space_available = MAX_DATA_IN_BLOCK;
       
     disk = fopen( DISK_NAME, "wb+" );
-    // /The arguments to fwrite() are the data to be printed, the size of one data item, the number of data items, and the file pointer.
     update_disk();
+
   }
 }
 
@@ -97,15 +91,12 @@ void init_archive() {
 long get_insert_offset( char *name ) {
   // return offset for file name in archive
 
-
   long insert_offset = 0; // assume first file in archive (will be at archive.data_block+0)
   
   int i;
   for ( i=0; i <= archive.header.num_files; i++ ) {
     insert_offset += archive.meta_data[ i ].f_size;
   }
-
-   println("insert offset is %lu ", insert_offset );
 
    return insert_offset;
 
@@ -128,30 +119,21 @@ void append_to_archive( char *name ) {
   } else {
     archive.header.space_available -= f_size;
   }
-  
   // if ( sizeof(name) > MAX_FILENAME )
   //   println( "Warning: filename %s is too long (will be truncated)", name );
-  
 
   long insert_offset = get_insert_offset( name );
 
   strcpy( archive.meta_data[ archive.header.num_files ].f_name, name );
   archive.meta_data[ archive.header.num_files ].f_start = insert_offset;
-  println(" NEEDS TO MATCH: %lu ", insert_offset );
   archive.meta_data[ archive.header.num_files ].f_size = f_size;
 
   char* f_contents = malloc( f_size );
   FILE* fp = fopen( name, "rb" );
 
-  println("here2");
-
   fread( f_contents, f_size, 1, fp );
   strcpy( archive.data_block+insert_offset, f_contents );
-  println("here2.5 contents %s", f_contents);
-  println("insert offset is %lu", insert_offset );
   
-  println("here3");
-
   archive.header.num_files += 1;
 
   fclose( fp );
@@ -163,17 +145,18 @@ void append_to_archive( char *name ) {
 void read_files() {
 
   // rewind to beginning of archive data block to read file contents
-  fseek( disk, 0, SEEK_SET );
+  fseek( disk, 0L, SEEK_SET );
+  println("");
 
   int i;
   for ( i=0; i < archive.header.num_files; i++ ) {
     println("---FILE %s---", archive.meta_data[ i ].f_name );
     int f_size = archive.meta_data[ i ].f_size;
     char* f_contents = malloc( f_size );
-    long offset = archive.meta_data[i].f_start;
+    long offset = sizeof(Header) + archive.meta_data[i].f_start;
     fseek( disk, offset, SEEK_SET );
     fread( f_contents, f_size, 1, disk );
-    println("contents: %s", f_contents);
+    println("%s", f_contents);
   }
 }
 
