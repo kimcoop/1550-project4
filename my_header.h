@@ -19,6 +19,7 @@
 #define FALSE 0
 #define OUTPUT_FILE "output.txt"
 #define TEST_FILE "testfile.txt"
+#define TEST_FILE_A "testfile_a.txt"
 #define TEST_FILE_LONG "testfile_long.txt"
 
 #define BLOCK_SIZE 512 //size of a disk block

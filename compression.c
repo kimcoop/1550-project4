@@ -4,7 +4,6 @@
 #define FILE_FOUND 1
 
 void decompress_file( char* filename ) {
-  println(" decompressing %s", filename );
 
   if ( !file_exists(filename) ) {
     println( "Error: cannot compress file %s--File not found.", filename );
@@ -33,8 +32,6 @@ void decompress_file( char* filename ) {
 
 }
 
-
-// compresses file and returns compressed file name (.Z added), or if it doesn't exist, original file name
 char* compress_file( char* filename ) {
 
   if ( !file_exists(filename) ) {
@@ -42,7 +39,7 @@ char* compress_file( char* filename ) {
     exit(0);
   }
 
-  println("compressing %s", filename);
+  log("Compressing file %s", filename);
   
   pid_t childpid;
   int status;
@@ -72,17 +69,16 @@ char* compress_file( char* filename ) {
   println( "%s", new_name );
   
   if ( file_exists( new_name ) ) {
-    println("file %s exists - compressed", new_name);
+    log("File %s compressed successfully.", new_name);
     return new_name;
   } else {
-    println("file %s compression didn't work", new_name );
+    log("Error: file %s compression failed.", new_name );
     return filename;
   }
   return filename;
 
 }
 
-// checks if a file exists 
 int file_exists( const char *name) {
 
   FILE *f;
