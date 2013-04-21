@@ -2,7 +2,7 @@
 typedef struct {
 
   char d_name[ MAX_FILENAME +1 ];
-  int num_files;
+  int num_files, space_available;
   long meta_data_pos; // position that dictionary begins from
 
 } Header;

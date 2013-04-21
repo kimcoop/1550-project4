@@ -1,11 +1,14 @@
 
+void print_archive_meta_data();
 void meta_data(char *);
 void hierarchy(char *, int);
 void tabify( int );
 
 char *modes[]={"---","--x","-w-","-wx","r--","r-x","rw-","rwx"}; // eight distinct modes
 
-
+void print_archive_meta_data() {
+  println("STUB: print_archive_meta_data");
+}
 
 void list_meta_data( char *name ) {
 

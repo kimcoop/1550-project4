@@ -41,11 +41,9 @@
 /* GLOBALS */
 
 // my_print
+void print_archive_meta_data();
 int get_file_size( char *name );
 
-
-//dir
-int create_descriptor(char *filename);
 
 // utils.c
 int is_dir( struct stat* buf );

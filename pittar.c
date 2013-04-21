@@ -33,7 +33,6 @@ void update_disk() {
 
 void decompress_all() {
 
-  init_archive();
   int i;
   for ( i=0; i < archive.header.num_files; i++ ) {
     MetaData meta_data = archive.meta_data[i];
@@ -80,6 +79,7 @@ void init_archive() {
 
     strcpy( archive.header.d_name, DIR_NAME );
     archive.header.num_files = 0;
+    archive.header.space_available = MAX_DATA_IN_BLOCK;
       
     disk = fopen( DISK_NAME, "a+b" );
     // /The arguments to fwrite() are the data to be printed, the size of one data item, the number of data items, and the file pointer.
@@ -111,6 +111,14 @@ void append_to_archive( char *name ) {
 
   // TODO: check overflow
   // TODO: check file named name not already present in archive 
+  int f_size = get_file_size( name );
+  if ( f_size >= archive.header.space_available ) {
+    // println( "Error: not enough space for file %s in archive.", name );
+    // return;
+  } else {
+    archive.header.space_available -= f_size;
+    println(" remaining space availabe is %d", archive.header.space_available );
+  }
   
   if ( strlen(name) > MAX_FILENAME )
     println( "Warning: filename %s is too long and will be truncated.", name );
@@ -118,7 +126,6 @@ void append_to_archive( char *name ) {
   println(" archive data begins at %lu for file %s", (long) archive.data_block, name );
 
   long insert_offset = get_insert_offset();
-  int f_size = get_file_size( name );
 
   strcpy( archive.meta_data[ archive.header.num_files ].f_name, name );
   archive.meta_data[ archive.header.num_files ].f_start = insert_offset;
@@ -205,31 +212,28 @@ int main( int argc, char *argv[] ) {
     
     char flag;
     strcpy( CURR_DIR, "." );
+    init_archive();
 
     int i;
     for ( i=1; i < argc; i++ ) {
       
       flag = argv[i][1];
         // num_cashiers = atoi( argv[ ++i ] );
-      if ( flag == 'p' )
-        print_hierarchy( CURR_DIR );
-      if ( flag == 'm' )
-        print_meta_data( CURR_DIR );
+      if ( flag == 'p' ) {
+        print_archive();
+      }
+      if ( flag == 'm' ) {
+        print_archive_meta_data();
+      }
       if ( flag == 'c' ) {
-        init_archive();
 
         println(" iterating through files/directores in argv" );
         int j;
         for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
           char* compressed_file;
-          // get_file_size( argv[j] );
-          compressed_file = compress_file( argv[j] );       
-          // get_file_size( compressed_file );
+          compressed_file = compress_file( argv[j] );
           append_to_archive( compressed_file );
         }
-
-        // print_archive();
-        // read_from_disk();
       }
       if ( flag == 'x' ) { // unarchive (extract -> decompress)
         decompress_all();
