@@ -11,22 +11,49 @@ Due April 20, 2013
 #define DIR_NAME "coop"
 #define DISK_NAME "archive.pitt"
 
+void decompress_all();
+void init_archive();
+void read_from_disk();
+
 int FIRST_LEVEL = 0;
 char CURR_DIR[ SMALL_BUFFER ];
 Archive archive;
 FILE* disk;
 
-void flush_to_disk(long insert_offset, int f_size );
+void decompress_all() {
+  // for each meta data in archive.header
+    // collect the filename f_name and size f_size
+    // create a char[f_size] buffer
+    // read the contents of meta_data.start into buffer
+    // save buffer as a binary file named f_name
+    // decompress file named f_name
+  // end foreach
+  init_archive();
+  int i;
+  for ( i=0; i < archive.header.num_files; i++ ) {
+    MetaData meta_data = archive.meta_data[i];
 
-void get_archive() {
-  println("get_archive");
-  disk = fopen( DISK_NAME, "r+b" );
+    char filename[ MAX_FILENAME ];
+    strcpy( filename, meta_data.f_name );
 
-  fread( &archive, sizeof( Archive ), 1, disk );
+    FILE* file_to_decompress = fopen( filename, "a+b" );
+    println("should've created file with name %s", filename);
 
-  println(" got heder info from file? ");
-  println(" READ IN*** header.d_name is %s ", archive.header.d_name );
+    char file_contents[ meta_data.f_size ];
+    // strncpy( file_contents, archive.data_block[meta_data.f_start], meta_data.f_size );
+    println(" retrived file_contents from archive.data_block ");
 
+    // char *ext = ".Z";
+    // char* new_name = (char *) malloc( strlen(filename) + strlen(ext)+1 );
+    // new_name[0] = '\0';
+
+    // strcpy( new_name, filename );
+    // strcat( new_name, ext );
+
+    println( "%s decompressing!!!", filename );
+
+    decompress_file( filename );
+  }
 }
 
 void init_archive() {
@@ -34,7 +61,14 @@ void init_archive() {
   if ( file_exists( DISK_NAME ) ) {
 
     println(" disk EXISTS** (delete or access?)" );
-    get_archive();
+    println("get_archive");
+    disk = fopen( DISK_NAME, "r+b" );
+
+    fread( &archive, sizeof( Archive ), 1, disk );
+    println(" READ IN*** header.d_name is %s ", archive.header.d_name );
+
+    read_from_disk();
+    println(" NUM_FILES IS %d", archive.header.num_files );
 
   } else {
     println(" disk does not exist yet; initializing " );
@@ -87,40 +121,16 @@ void append_to_archive( char *name ) {
 
   char* f_contents = malloc( f_size );
   FILE* fp = fopen( name, "rb" );
-  fread( f_contents, 1, f_size, fp );
-  // strncpy( archive.data_block + insert_offset, f_contents, f_size );
 
-  // flush_to_disk( insert_offset, f_size );
+  fread( f_contents, 1, f_size, fp );
+  strcat( archive.data_block, f_contents ); // concatenate the new file's contents to the archive's aggregate data_block
+
   ++archive.header.num_files;
   println( "archive num_files increased to %d ", archive.header.num_files );
 
   fclose( fp );
 
 }
-
-// void flush_to_disk( long offset, int size ) {
-
-//   char contents[ size ];
-//   // strncpy( archive.data_block + insert_offset, f_contents, f_size );
-//   strncpy( archive.data_block +  offset, contents, size );
-
-//   println(" flush_to_disk ");
-
-//   // println(" file %s contents:: ", name);
-//   // println("------------------------------------------------");
-//   // println(" %s", contents );
-//   // println("------------------------------------------------");
-
-//   // pwrite( disk_descriptor, contents, size, 0 );
-
-//   fwrite( contents, sizeof( contents[0] ), size/sizeof( contents[0] ), disk );
-
-//   // update header on disk (num_files)
-//   // update header on disk (new meta_data ptr)
-//   // fseek( disk, archive.data_block, SEEK_SET);
-
-//   // pwrite( int fd, const void* buf, size_t count, off_t offset );
-// }
 
 void read_from_disk() {
 
@@ -213,25 +223,22 @@ int main( int argc, char *argv[] ) {
 
         print_archive();
         // read_from_disk();
-        fclose( disk );
       }
-      if ( flag == 'x' ) { // unarchive (extract . decompress)
-        // for each meta data in archive.header
-          // collect the filename f_name and size f_size
-          // create a char[f_size] buffer
-          // read the contents of meta_data.start into buffer
-          // save buffer as a binary file named f_name
-          // decompress file named f_name
-        // end foreach
+      if ( flag == 'x' ) { // unarchive (extract -> decompress)
+        decompress_all();
+      }
+      if ( flag == 'k' ) {
+        println(" iterating to decompress" );
         int j;
-        for ( j=i+1; j < argc; j++ ) {
-         decompress_file( argv[j] );
-        }
+        for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
+          decompress_file( argv[j] );       
+        }        
       }
 
     }
   }
 
+  fclose( disk );
   return 0;
  
 }

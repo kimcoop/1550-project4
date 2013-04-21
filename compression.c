@@ -24,7 +24,7 @@ void decompress_file( char* filename ) {
   if ( (childpid = fork()) < 0 ) 
     perror("Failed to fork");
 
-  if ( childpid == 0 ) { 
+  if ( childpid == 0 ) {
     if ( execv( "./compress", argv ) == -1 ) 
       perror( "execv " );
   }
