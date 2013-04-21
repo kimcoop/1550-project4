@@ -197,6 +197,7 @@ int main( int argc, char *argv[] ) {
       if ( flag == 'f' ) {
         char* str = ""
         "\t -c \t <archive-file> <file/directory list>\n"
+        "\t -k \t <file list> decompress files in working directory\n"
         "\t -h \t print hierarchy for current directory\n"
         "\t -y \t print meta data for files in current directory\n"
         "\t -a \t append <file/directory list> in existing archive file <archive-file>\n"
