@@ -1,14 +1,11 @@
 
+
 void print_archive_meta_data();
 void meta_data(char *);
 void hierarchy(char *, int);
 void tabify( int );
-
-char *modes[]={"---","--x","-w-","-wx","r--","r-x","rw-","rwx"}; // eight distinct modes
-
-void print_archive_meta_data() {
-  println("STUB: print_archive_meta_data");
-}
+int get_perms( char *name );
+void print_perms( int mode );
 
 void list_meta_data( char *name ) {
 
@@ -54,9 +51,33 @@ int get_file_size( char *name ) {
 
   struct stat mybuf;
   p_stat( name, &mybuf );
-  println(" file size for file %s is %7d", name, (int)mybuf.st_size );
 
   return (int) mybuf.st_size;
+
+}
+
+int get_perms( char *name ) {
+
+  struct stat mybuf;
+  p_stat( name, &mybuf );
+
+  return mybuf.st_mode;
+}
+
+void print_perms( int mode ) {
+  
+  char type, perms[10];
+  int i,j;
+
+  *perms='\0';
+
+  for ( i=2; i>=0; i-- ) {
+    j = ( mode >> (i*3)) & 07;
+    strcat( perms,modes[j] ); 
+  }
+
+  printf( "%s", perms );
+
 }
 
 void meta_data( char *name ) {
@@ -82,6 +103,9 @@ void meta_data( char *name ) {
   printf("%c%s%3d %5d/%-5d %7d %.12s %s \n",\
     type, perms, mybuf.st_nlink, mybuf.st_uid, mybuf.st_gid, \
     (int)mybuf.st_size, ctime(&mybuf.st_mtime)+4, name);
+
+  // TODO: sprintf this meta data
+  // store in global var
 
 } 
 
@@ -134,4 +158,35 @@ void hierarchy(char *name, int level ) {
 	closedir( dp );
 }
 
+
+
+void print_archive() {
+
+  println( "Directory name: %s", archive.header.d_name );
+  println( "Number of files: %d\n", archive.header.num_files );
+
+  int i;
+  for ( i=0; i < archive.header.num_files; i++ ) {
+    println("---FILE %d---", i );
+    println( "name: %s", archive.meta_data[ i ].f_name );
+    println( "size: %lu", archive.meta_data[ i ].f_size );
+    println( "start: %lu", archive.meta_data[ i ].f_start );
+  }
+}
+
+void print_archive_meta_data() {
+  println( "Directory name: %s", archive.header.d_name );
+  println( "Number of files: %d\n", archive.header.num_files );
+
+  int i;
+  for ( i=0; i < archive.header.num_files; i++ ) {
+    println("---FILE %d---", i );
+    println( "name: %s", archive.meta_data[ i ].f_name );
+    println( "size: %lu", archive.meta_data[ i ].f_size );
+    printf( "modes: " );
+    print_perms( archive.meta_data[ i ].f_modes );
+    printf( "\n" );
+
+  }
+}
 

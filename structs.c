@@ -11,7 +11,7 @@ typedef struct {
 
   char f_name[ MAX_FILENAME +1 ];
   size_t f_size; // file size
-  char f_modes[ MODE_SIZE +1 ];
+  int f_modes;
   long f_start; // where first data is found on disk
   // TODO: owner
 

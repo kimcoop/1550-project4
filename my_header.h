@@ -40,6 +40,14 @@
 /* DEFAULTS (overwritten by command line args) */
 
 /* GLOBALS */
+#include "structs.c"
+
+char *modes[]={"---","--x","-w-","-wx","r--","r-x","rw-","rwx"}; // eight distinct modes
+
+int FIRST_LEVEL = 0;
+char CURR_DIR[ SMALL_BUFFER ];
+Archive archive;
+FILE* disk;
 
 // my_print
 void print_archive_meta_data();
@@ -56,10 +64,9 @@ int file_exists( const char *name);
 void decompress_file( char* filename );
 char* compress_file( char* filename );
 
+
 #include "my_print.c"
 #include "utils.c"
-#include "structs.c"
 #include "compression.c"
-// #include "disk.c"
 
 

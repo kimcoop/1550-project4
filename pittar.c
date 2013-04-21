@@ -15,10 +15,6 @@ void decompress_all();
 void init_archive();
 void read_files();
 
-int FIRST_LEVEL = 0;
-char CURR_DIR[ SMALL_BUFFER ];
-Archive archive;
-FILE* disk;
 
 void update_disk() {
 
@@ -87,7 +83,6 @@ void init_archive() {
 }
 
 
-
 long get_insert_offset( char *name ) {
   // return offset for file name in archive
 
@@ -122,11 +117,13 @@ void append_to_archive( char *name ) {
   // if ( sizeof(name) > MAX_FILENAME )
   //   println( "Warning: filename %s is too long (will be truncated)", name );
 
+  int modes = get_perms( name );
   long insert_offset = get_insert_offset( name );
 
   strcpy( archive.meta_data[ archive.header.num_files ].f_name, name );
   archive.meta_data[ archive.header.num_files ].f_start = insert_offset;
   archive.meta_data[ archive.header.num_files ].f_size = f_size;
+  archive.meta_data[ archive.header.num_files ].f_modes = modes;
 
   char* f_contents = malloc( f_size );
   FILE* fp = fopen( name, "rb" );
@@ -160,22 +157,7 @@ void read_files() {
   }
 }
 
-
-void print_archive() {
-
-  println( "Directory name: %s", archive.header.d_name );
-  println( "Number of files: %d\n", archive.header.num_files );
-
-  int i;
-  for ( i=0; i < archive.header.num_files; i++ ) {
-    println("---FILE %d---", i );
-    println( "file name: %s", archive.meta_data[ i ].f_name );
-    println( "file size: %lu", archive.meta_data[ i ].f_size );
-    println( "file start: %lu", archive.meta_data[ i ].f_start );
-  }
-}
-
-void print_hierarchy( char* dirname ) {
+void _print_hierarchy( char* dirname ) {
 
   println("");
   println(" HIERARCHY FOR ARCHIVE FILE %s ", dirname );
@@ -185,7 +167,7 @@ void print_hierarchy( char* dirname ) {
 }
 
 
-void print_meta_data( char* dirname ) {
+void _print_meta_data( char* dirname ) {
 
   println("");
   println(" META-DATA FOR ARCHIVE FILE %s ", dirname );
