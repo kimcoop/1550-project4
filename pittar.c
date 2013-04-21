@@ -112,6 +112,14 @@ void append_to_archive( char *name ) {
 
   // TODO: check overflow
   // TODO: check file named name not already present in archive 
+
+  int i;
+  for ( i=0; i < archive.header.num_files; i++ ) {
+    if ( strEqual( archive.meta_data[ i ].f_name, name ) ) {
+      println( "Error: file %s is already present in archive", name );
+    }
+  }
+
   int f_size = get_file_size( name );
   if ( f_size >= archive.header.space_available ) {
     // println( "Error: not enough space for file %s in archive.", name );
