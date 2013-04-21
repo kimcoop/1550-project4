@@ -16,7 +16,10 @@ commented out some validations in compress.c
 ./pittar -k testfile.txt.Z testfile_long.txt.Z (manual decompress)
 validation of not already present file
 read_files function
-h flag for output help
+f flag for output help
+h & y flags for heierrchy & meta data info for curr dir
 
-TODO: metadata
+
+/pittar -k testfile_long.txt.Z 
+run -k to decompress files that hve been compressed in current directory (for re-usage)
 

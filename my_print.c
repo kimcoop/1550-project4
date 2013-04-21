@@ -1,12 +1,4 @@
 
-
-void print_archive_meta_data();
-void meta_data(char *);
-void hierarchy(char *, int);
-void tabify( int );
-int get_perms( char *name );
-void print_perms( int mode );
-
 void list_meta_data( char *name ) {
 
   struct dirent *dir;
@@ -103,10 +95,6 @@ void meta_data( char *name ) {
   printf("%c%s%3d %5d/%-5d %7d %.12s %s \n",\
     type, perms, mybuf.st_nlink, mybuf.st_uid, mybuf.st_gid, \
     (int)mybuf.st_size, ctime(&mybuf.st_mtime)+4, name);
-
-  // TODO: sprintf this meta data
-  // store in global var
-
 } 
 
 

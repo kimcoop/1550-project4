@@ -160,7 +160,7 @@ void read_files() {
 void _print_hierarchy( char* dirname ) {
 
   println("");
-  println(" HIERARCHY FOR ARCHIVE FILE %s ", dirname );
+  println(" HIERARCHY FOR DIRECTORY %s ", dirname );
   println("");
 
   hierarchy( dirname, FIRST_LEVEL );
@@ -170,7 +170,7 @@ void _print_hierarchy( char* dirname ) {
 void _print_meta_data( char* dirname ) {
 
   println("");
-  println(" META-DATA FOR ARCHIVE FILE %s ", dirname );
+  println(" META-DATA FOR DIRECTORY %s ", dirname );
   println("");
 
   list_meta_data( dirname );
@@ -194,9 +194,11 @@ int main( int argc, char *argv[] ) {
     for ( i=1; i < argc; i++ ) {
       
       flag = argv[i][1];
-      if ( flag == 'h' ) {
+      if ( flag == 'f' ) {
         char* str = ""
         "\t -c \t <archive-file> <file/directory list>\n"
+        "\t -h \t print hierarchy for current directory\n"
+        "\t -y \t print meta data for files in current directory\n"
         "\t -a \t append <file/directory list> in existing archive file <archive-file>\n"
         "\t -x \t extract all files and catalogs from archived from <archive-file>\n"
         "\t -m \t print out meta-data (owner, group, rights) from <archive-file>\n"
@@ -206,6 +208,10 @@ int main( int argc, char *argv[] ) {
         println( "--OPTIONS--" );
         println( "%s", str );
       }
+      if ( flag == 'h' )
+        _print_hierarchy( CURR_DIR );
+      if ( flag == 'y' )
+        _print_meta_data( CURR_DIR );
       if ( flag == 'j' ) {
         COMPRESS_FLAG = TRUE;
       } 

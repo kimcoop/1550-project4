@@ -30,7 +30,7 @@
 #define MAX_DATA_IN_BLOCK (BLOCK_SIZE - sizeof(unsigned long))
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
-#define DEBUG 1
+#define DEBUG 0
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
 #define println(...) if ( DEBUG ) { printf("%d:\t", __LINE__); }  printf( __VA_ARGS__ ); printf("\n")
@@ -51,7 +51,11 @@ FILE* disk;
 
 // my_print
 void print_archive_meta_data();
-int get_file_size( char *name );
+void meta_data(char *);
+void hierarchy(char *, int);
+void tabify( int );
+int get_perms( char *name );
+void print_perms( int mode );
 
 
 // utils.c
