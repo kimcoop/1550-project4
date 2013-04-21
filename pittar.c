@@ -8,7 +8,7 @@ Due April 20, 2013
 
 #include "my_header.h"
 
-#define DIR_NAME "coop"
+#define DIR_NAME "(no dir)"
 #define DISK_NAME "archive.pitt"
 
 void decompress_all();
@@ -23,7 +23,7 @@ FILE* disk;
 void update_disk() {
 
   fseek( disk, 0, SEEK_SET );
-  println("Updated disk (number of files is now %d)", archive.header.num_files );
+  println("Updated disk (%d files)", archive.header.num_files );
   fwrite( &archive, sizeof( Archive ), 1, disk );
   fseek( disk, 0L, SEEK_END );
 
@@ -44,24 +44,12 @@ void decompress_all() {
     strcpy( filename, meta_data.f_name );
 
     FILE* file_to_decompress = fopen( filename, "wb" );
-    println("should've created a new file with name %s", filename);
+    println( "Reconstructing file %s", filename );
 
     char file_contents[ meta_data.f_size ];
-    println(" file starts at %lu", meta_data.f_start );
     strncpy( file_contents, archive.data_block+meta_data.f_start, meta_data.f_size );
-    println(" retrived file_contents from archive.data_block ");
 
     fwrite( file_contents, meta_data.f_size, 1, file_to_decompress );
-    println("wrote contents to new file");
-
-    // char *ext = ".Z";
-    // char* new_name = (char *) malloc( strlen(filename) + strlen(ext)+1 );
-    // new_name[0] = '\0';
-
-    // strcpy( new_name, filename );
-    // strcat( new_name, ext );
-
-    println( "%s decompressing!!!", filename );
 
     decompress_file( filename );
   }
@@ -71,11 +59,11 @@ void init_archive() {
   
   if ( file_exists( DISK_NAME ) ) {
 
-    println( "Retrieving existing archive");
+    println( "Retrieving existing archive..." );
     disk = fopen( DISK_NAME, "r+b" );
 
     fread( &archive, sizeof( Archive ), 1, disk );
-    log( "Retrieved directory named %s with number of files %d ", archive.header.d_name, archive.header.num_files );
+    log( "Retrieved archive containing directory named %s with %d files", archive.header.d_name, archive.header.num_files );
 
   } else {
     println( "Initializing archive" );
@@ -95,7 +83,8 @@ void init_archive() {
 long get_insert_offset( char *name ) {
   // return offset for file name in archive
 
-  long insert_offset = sizeof( Header); // assume first file in archive
+
+  long insert_offset = 0; // assume first file in archive (will be at archive.data_block+0)
   
   int i;
   for ( i=0; i < archive.header.num_files; i++ ) {
@@ -110,26 +99,24 @@ long get_insert_offset( char *name ) {
 
 void append_to_archive( char *name ) {
 
-  // TODO: check overflow
-  // TODO: check file named name not already present in archive 
-
   int i;
   for ( i=0; i < archive.header.num_files; i++ ) {
     if ( strEqual( archive.meta_data[ i ].f_name, name ) ) {
       println( "Error: file %s is already present in archive", name );
+      return;
     }
   }
 
   int f_size = get_file_size( name );
-  if ( f_size >= archive.header.space_available ) {
+  if ( f_size >= archive.header.space_available ) { // TODO: check overflow
     // println( "Error: not enough space for file %s in archive.", name );
     // return;
   } else {
     archive.header.space_available -= f_size;
   }
   
-  if ( strlen(name) > MAX_FILENAME )
-    println( "Warning: filename %s is too long and will be truncated.", name );
+  if ( sizeof(name) > MAX_FILENAME )
+    println( "Warning: filename %s is too long (will be truncated)", name );
   
 
   long insert_offset = get_insert_offset( name );
@@ -141,8 +128,18 @@ void append_to_archive( char *name ) {
   char* f_contents = malloc( f_size );
   FILE* fp = fopen( name, "rb" );
 
-  fread( f_contents, 1, f_size, fp );
-  strcat( archive.data_block, f_contents ); // concatenate the new file's contents to the archive's aggregate data_block
+  println("here2");
+
+  fseek( disk, sizeof(Header)+insert_offset, SEEK_SET );
+  fread( f_contents, f_size, 1, fp );
+  println("here2.5 contents %s", f_contents);
+  
+  // fread( &archive, sizeof( Archive ), 1, disk );
+  // char file_contents[ meta_data.f_size ];
+  //   strncpy( file_contents, archive.data_block+meta_data.f_start, meta_data.f_size );
+  println("insert offset is %lu", insert_offset );
+  strncpy( archive.data_block, f_contents, f_size ); // concatenate the new file's contents to the archive's aggregate data_block
+  println("here3");
 
   ++archive.header.num_files;
 
@@ -163,24 +160,23 @@ void read_files() {
     char* f_contents = malloc( f_size );
     long offset = archive.meta_data[i].f_start;
     fseek( disk, offset, SEEK_SET );
-    fread( f_contents, 1, f_size, disk );
+    fread( f_contents, f_size, 1, disk );
     println("contents: %s", f_contents);
-    // strncpy( f_contents, archive+offset, f_size );
   }
 }
 
 
 void print_archive() {
 
-  println( "d_name: %s", archive.header.d_name );
-  println( "num_files: %d ", archive.header.num_files );
+  println( "Directory name: %s", archive.header.d_name );
+  println( "Number of files: %d\n", archive.header.num_files );
 
   int i;
   for ( i=0; i < archive.header.num_files; i++ ) {
     println("---FILE %d---", i );
-    println( "(meta_data) file name: %s", archive.meta_data[ i ].f_name );
-    println( "(meta_data) file size: %lu", archive.meta_data[ i ].f_size );
-    println( "(meta_data) file start: %lu", archive.meta_data[ i ].f_start );
+    println( "file name: %s", archive.meta_data[ i ].f_name );
+    println( "file size: %lu", archive.meta_data[ i ].f_size );
+    println( "file start: %lu", archive.meta_data[ i ].f_start );
   }
 }
 
@@ -229,6 +225,9 @@ int main( int argc, char *argv[] ) {
       if ( flag == 'm' )
         print_archive_meta_data();
       if ( flag == 'a' ) {
+        if ( COMPRESS_FLAG ) { println( "Compressing files" ); }
+        if ( !COMPRESS_FLAG ) { println( "Not compressing files" ); }
+        assert( COMPRESS_FLAG );
         int j;
         for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
           if ( COMPRESS_FLAG ) {
@@ -240,8 +239,9 @@ int main( int argc, char *argv[] ) {
         }
       }
       if ( flag == 'c' ) {
-        if ( COMPRESS_FLAG ) println( "Compressing files" );
-        if ( !COMPRESS_FLAG ) println( "Not compressing files" );
+        if ( COMPRESS_FLAG ) { println( "Compressing files" ); }
+        if ( !COMPRESS_FLAG ) { println( "Not compressing files" ); }
+        assert( COMPRESS_FLAG );
         int j;
         for ( j=i+1; j < argc; j++ ) { // iterate through list of files/directories present in argv
           if ( COMPRESS_FLAG ) {

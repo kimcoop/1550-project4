@@ -30,7 +30,7 @@
 #define MAX_DATA_IN_BLOCK (BLOCK_SIZE - sizeof(unsigned long))
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
-#define DEBUG 0
+#define DEBUG 1
 
 /* DEBUGGING -  SET THIS VALUE TO 1 TO LOG OUTPUT */
 #define println(...) if ( DEBUG ) { printf("%d:\t", __LINE__); }  printf( __VA_ARGS__ ); printf("\n")

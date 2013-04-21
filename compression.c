@@ -6,7 +6,7 @@
 void decompress_file( char* filename ) {
 
   if ( !file_exists(filename) ) {
-    println( "Error: cannot compress file %s--File not found.", filename );
+    println( "Error: cannot compress file %s (file not found)", filename );
     exit(0);
   }
 
@@ -35,7 +35,7 @@ void decompress_file( char* filename ) {
 char* compress_file( char* filename ) {
 
   if ( !file_exists(filename) ) {
-    println( "Error: cannot compress file %s--File not found.", filename );
+    println( "Error: cannot compress file %s (file not found)", filename );
     exit(0);
   }
 
